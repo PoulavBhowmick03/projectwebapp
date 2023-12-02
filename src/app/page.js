@@ -126,7 +126,7 @@ function App() {
       } cursor-pointer py-4`}
       key={user.id}
     >
-      <td className="text-center"> {/* Center-align */}
+      <td className="text-center">
         <input
           type="checkbox"
           checked={selectedUsers.includes(user)}
@@ -136,21 +136,21 @@ function App() {
 
       {user.id === editingRow ? (
         <>
-          <td className="text-center"> {/* Center-align */}
+          <td className="text-center"> 
             <input
               value={user.name}
               onChange={e => editUser(user, "name", e.target.value)}
               className="border rounded py-1 px-2 w-full"
             />
           </td>
-          <td className="text-center"> {/* Center-align */}
+          <td className="text-center">
             <input
               value={user.email}
               onChange={e => editUser(user, "email", e.target.value)}
               className="border rounded py-1 px-2 w-full"
             />
           </td>
-          <td className="text-center"> {/* Center-align */}
+          <td className="text-center"> 
             <select
               value={user.role}
               onChange={e => editUser(user, "role", e.target.value)}
@@ -160,7 +160,7 @@ function App() {
               <option value="admin">Admin</option>
             </select>
           </td>
-          <td className="text-center"> {/* Center-align */}
+          <td className="text-center"> 
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded"
               onClick={() => saveEditing(user)}
