@@ -126,7 +126,7 @@ function App() {
       } cursor-pointer py-4`}
       key={user.id}
     >
-      <td>
+      <td className="text-center"> {/* Center-align */}
         <input
           type="checkbox"
           checked={selectedUsers.includes(user)}
@@ -194,7 +194,8 @@ function App() {
       )}
     </tr>
   ))}
-</tbody></table>        </div>
+</tbody>
+</table>        </div>
 
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center space-x-4">
