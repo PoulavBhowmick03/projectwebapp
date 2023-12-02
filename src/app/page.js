@@ -14,49 +14,48 @@ function App() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json");
+        const response = await fetch("https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json", {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+  
         const data = await response.json();
         setUsers(data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
-
+  
     fetchData();
-  }, []); 
+  }, []);
+   
 
-  const filteredUsers = users.filter(user => {
-    return (
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()) ||
-      user.role.toLowerCase().includes(search.toLowerCase())
-    );
-  });
+  const filteredUsers = users.filter(user => (
+    user.name.toLowerCase().includes(search.toLowerCase()) ||
+    user.email.toLowerCase().includes(search.toLowerCase()) ||
+    user.role.toLowerCase().includes(search.toLowerCase())
+  ));
 
   const totalPages = Math.ceil(filteredUsers.length / 10);
   const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
   const displayUsers = filteredUsers.slice((page - 1) * 10, page * 10);
 
   function toggleUserSelection(user) {
-    setSelectedUsers(prevSelected => {
-      if (prevSelected.includes(user)) {
-        return prevSelected.filter(u => u !== user);
-      } else {
-        return [...prevSelected, user];
-      }
-    });
+    setSelectedUsers(prevSelected => (
+      prevSelected.includes(user) ? prevSelected.filter(u => u !== user) : [...prevSelected, user]
+    ));
   }
 
   function toggleSelectAll() {
-    setSelectedUsers(prevSelected =>
+    setSelectedUsers(prevSelected => (
       prevSelected.length === displayUsers.length ? [] : [...displayUsers]
-    );
+    ));
   }
 
   function editUser(user, field, value) {
-    const updatedUsers = users.map(u =>
-      u.id === user.id ? { ...u, [field]: value } : u
-    );
+    const updatedUsers = users.map(u => (u.id === user.id ? { ...u, [field]: value } : u));
     setUsers(updatedUsers);
   }
 
@@ -87,163 +86,173 @@ function App() {
   }
 
   return (
-    <div className="font-mono text-center flex flex-col bg-gray-100 min-h-screen">
-      <input
-        type="text"
-        placeholder="Search..."
-        className="border rounded py-2 px-4 w-1/3 self-center mt-4 text-black"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
+    <div className="font-sans text-gray-800 min-h-screen bg-gray-100">
+      <div className="container mx-auto p-8">
+        <input
+          type="text"
+          placeholder="Search..."
+          className="border rounded py-2 px-4 w-1/2 mb-4 focus:outline-none focus:border-blue-500"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
 
-      <div className="border overflow-x-auto rounded text-black my-32 relative">
-        <button
-          className="absolute top-0 right-0 m-4 px-4 py-2 bg-red-500 text-white rounded items-center justify-center flex"
-          onClick={deleteSelectedRows}
-          disabled={selectedUsers.length === 0}
-        >
-          <BsTrash className="mr-2" />
-          Delete Selected
-        </button>
+        <div className="overflow-hidden border rounded-lg bg-white">
+          <button
+            className="absolute top-0 right-0 m-4 px-4 py-2 bg-red-500 text-white rounded flex items-center"
+            onClick={deleteSelectedRows}
+            disabled={selectedUsers.length === 0}
+          >
+            <BsTrash className="mr-2" />
+            Delete Selected
+          </button>
 
-        <table className="table-auto w-full my-4">
-          <thead>
-            <tr className="bg-gray-300">
-              <th className="border p-2">
-                <input
-                  type="checkbox"
-                  onChange={toggleSelectAll}
-                  checked={selectedUsers.length === displayUsers.length}
-                />
-              </th>
-              {header.map(title => (
-                <th className="border p-2" key={title}>
-                  {title}
-                </th>
-              ))}
-              <th className="border p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayUsers.map((user, index) => (
-              <tr
-                className={`${
-                  selectedUsers.includes(user) ? 'bg-gray-200' : 'hover:bg-gray-100'
-                } cursor-pointer py-4`}
-                key={user.id}
-              >
-                <td>
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border p-2">
                   <input
                     type="checkbox"
-                    checked={selectedUsers.includes(user)}
-                    onChange={() => toggleUserSelection(user)}
+                    onChange={toggleSelectAll}
+                    checked={selectedUsers.length === displayUsers.length}
                   />
-                </td>
-
-                {user.id === editingRow ? (
-                  <>
-                    <td>
-                      <input
-                        value={user.name}
-                        onChange={e => editUser(user, "name", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        value={user.email}
-                        onChange={e => editUser(user, "email", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        value={user.role}
-                        onChange={e => editUser(user, "role", e.target.value)}
-                      >
-                        <option value="member">Member</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </td>
-                    <td>
-                      <button className="save" onClick={() => saveEditing(user)}>
-                        Save
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>{user.role}</td>
-                    <td>
-                      <div className="flex justify-around">
-                        <button
-                          className="edit"
-                          onClick={() => setEditingRow(user.id)}
-                        >
-                          <BsPencil />
-                        </button>
-                        <button
-                          className="delete"
-                          onClick={() => deleteRow(user)}
-                        >
-                          <BsTrash />
-                        </button>
-                      </div>
-                    </td>
-                  </>
-                )}
+                </th>
+                {header.map(title => (
+                  <th className="border p-2" key={title}>
+                    {title}
+                  </th>
+                ))}
+                <th className="border p-2">Actions</th>
               </tr>
+            </thead>
+
+            <tbody>
+              {displayUsers.map((user, index) => (
+                <tr
+                  className={`${
+                    selectedUsers.includes(user) ? 'bg-gray-100' : 'hover:bg-gray-50'
+                  } cursor-pointer py-4`}
+                  key={user.id}
+                >
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user)}
+                      onChange={() => toggleUserSelection(user)}
+                    />
+                  </td>
+
+                  {user.id === editingRow ? (
+                    <>
+                      <td>
+                        <input
+                          value={user.name}
+                          onChange={e => editUser(user, "name", e.target.value)}
+                          className="border rounded py-1 px-2 w-full"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          value={user.email}
+                          onChange={e => editUser(user, "email", e.target.value)}
+                          className="border rounded py-1 px-2 w-full"
+                        />
+                      </td>
+                      <td>
+                        <select
+                          value={user.role}
+                          onChange={e => editUser(user, "role", e.target.value)}
+                          className="border rounded py-1 px-2 w-full"
+                        >
+                          <option value="member">Member</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button
+                          className="bg-blue-500 text-white px-4 py-2 rounded"
+                          onClick={() => saveEditing(user)}
+                        >
+                          Save
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{user.name}</td>
+                      <td>{user.email}</td>
+                      <td>{user.role}</td>
+                      <td>
+                        <div className="flex space-x-2">
+                          <button
+                            className="text-blue-500 hover:underline"
+                            onClick={() => setEditingRow(user.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="text-red-500 hover:underline"
+                            onClick={() => deleteRow(user)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex justify-between items-center mt-4">
+          <div className="flex items-center space-x-4">
+            <button
+              className="px-3 py-2 rounded-lg bg-gray-200 text-gray-700"
+              onClick={() => gotoPage(1)}
+              disabled={page === 1}
+            >
+              {'<<'}
+            </button>
+            <button
+              className="px-3 py-2 rounded-lg bg-gray-200 text-gray-700"
+              onClick={() => gotoPage(page - 1)}
+              disabled={page === 1}
+            >
+              {'<'}
+            </button>
+            {pageNumbers.map(num => (
+              <button
+                key={num}
+                className={`px-3 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white focus:outline-none ${num === page && 'bg-blue-500 text-white'}`}
+                onClick={() => gotoPage(num)}
+              >
+                {num}
+              </button>
             ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="fixed bottom-4 right-4 flex">
-        <button
-          className="h-8 w-8 rounded-full border bg-gray-300 text-black"
-          onClick={() => gotoPage(1)}
-          disabled={page === 1}
-        >
-          {'<<'}
-        </button>
-        <button
-          className="h-8 w-8 rounded-full border bg-gray-300 text-black mx-0.5"
-          onClick={() => gotoPage(page - 1)}
-          disabled={page === 1}
-        >
-          {'<'}
-        </button>
-        {pageNumbers.map(num => (
+            <button
+              className="px-3 py-2 rounded-lg bg-gray-200 text-gray-700"
+              onClick={() => gotoPage(page + 1)}
+              disabled={page === totalPages}
+            >
+              {'>'}
+            </button>
+            <button
+              className="px-3 py-2 rounded-lg bg-gray-200 text-gray-700"
+              onClick={() => gotoPage(totalPages)}
+              disabled={page === totalPages}
+            >
+              {'>>'}
+            </button>
+          </div>
+
           <button
-            key={num}
-            className={`h-8 w-8 rounded-full border mx-0.5 bg-gray-300 text-black 
-              flex items-center justify-center ${num === page && 'bg-blue-500 text-white'}`}
-            onClick={() => gotoPage(num)}
+            className="px-4 py-2 rounded bg-red-500 text-white"
+            onClick={deleteAllRowsOnPage}
           >
-            {num}
+            Delete All on Page
           </button>
-        ))}
-        <button
-          className="h-8 w-8 rounded-full border bg-gray-300 text-black mx-0.5"
-          onClick={() => gotoPage(page + 1)}
-          disabled={page === totalPages}
-        >
-          {'>'}
-        </button>
-        <button
-          className="h-8 w-8 rounded-full border bg-gray-300 text-black"
-          onClick={() => gotoPage(totalPages)}
-          disabled={page === totalPages}
-        >
-          {'>>'}
-        </button>
-      </div>
-      <div className="fixed bottom-4 left-4 flex items-center">
-        <button
-          className="h-8 w-8 rounded-full border bg-red-500 text-white items-center justify-center flex"
-          onClick={deleteAllRowsOnPage}
-        >
-          <BsTrash />
-        </button>
+        </div>
       </div>
     </div>
   );
