@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { BsChevronLeft, BsChevronRight, BsPencil, BsTrash } from 'react-icons/bs';
+import axios from 'axios';
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -11,26 +12,19 @@ function App() {
 
   const header = ["Name", "Email", "Role", "Actions"];
 
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json", {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-  
-        const data = await response.json();
-        setUsers(data);
+        const response = await axios.get("https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json");
+        setUsers(response.data); 
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
   
     fetchData();
-  }, []);
-   
+  }, []); 
 
   const filteredUsers = users.filter(user => (
     user.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -107,103 +101,100 @@ function App() {
           </button>
 
           <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border p-2">
-                  <input
-                    type="checkbox"
-                    onChange={toggleSelectAll}
-                    checked={selectedUsers.length === displayUsers.length}
-                  />
-                </th>
-                {header.map(title => (
-                  <th className="border p-2" key={title}>
-                    {title}
-                  </th>
-                ))}
-                <th className="border p-2">Actions</th>
-              </tr>
-            </thead>
+  <thead>
+    <tr className="bg-gray-200">
+      <th className="border p-2">
+        <input
+          type="checkbox"
+          onChange={toggleSelectAll}
+          checked={selectedUsers.length === displayUsers.length}
+        />
+      </th>
+      {header.map(title => (
+        <th className="border p-2" key={title}>
+          {title}
+        </th>
+      ))}
+    </tr>
+  </thead>
 
-            <tbody>
-              {displayUsers.map((user, index) => (
-                <tr
-                  className={`${
-                    selectedUsers.includes(user) ? 'bg-gray-100' : 'hover:bg-gray-50'
-                  } cursor-pointer py-4`}
-                  key={user.id}
-                >
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user)}
-                      onChange={() => toggleUserSelection(user)}
-                    />
-                  </td>
+  <tbody>
+  {displayUsers.map((user, index) => (
+    <tr
+      className={`${
+        selectedUsers.includes(user) ? 'bg-gray-100' : 'hover:bg-gray-50'
+      } cursor-pointer py-4`}
+      key={user.id}
+    >
+      <td>
+        <input
+          type="checkbox"
+          checked={selectedUsers.includes(user)}
+          onChange={() => toggleUserSelection(user)}
+        />
+      </td>
 
-                  {user.id === editingRow ? (
-                    <>
-                      <td>
-                        <input
-                          value={user.name}
-                          onChange={e => editUser(user, "name", e.target.value)}
-                          className="border rounded py-1 px-2 w-full"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          value={user.email}
-                          onChange={e => editUser(user, "email", e.target.value)}
-                          className="border rounded py-1 px-2 w-full"
-                        />
-                      </td>
-                      <td>
-                        <select
-                          value={user.role}
-                          onChange={e => editUser(user, "role", e.target.value)}
-                          className="border rounded py-1 px-2 w-full"
-                        >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </td>
-                      <td>
-                        <button
-                          className="bg-blue-500 text-white px-4 py-2 rounded"
-                          onClick={() => saveEditing(user)}
-                        >
-                          Save
-                        </button>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td>{user.name}</td>
-                      <td>{user.email}</td>
-                      <td>{user.role}</td>
-                      <td>
-                        <div className="flex space-x-2">
-                          <button
-                            className="text-blue-500 hover:underline"
-                            onClick={() => setEditingRow(user.id)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="text-red-500 hover:underline"
-                            onClick={() => deleteRow(user)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {user.id === editingRow ? (
+        <>
+          <td className="text-center"> {/* Center-align */}
+            <input
+              value={user.name}
+              onChange={e => editUser(user, "name", e.target.value)}
+              className="border rounded py-1 px-2 w-full"
+            />
+          </td>
+          <td className="text-center"> {/* Center-align */}
+            <input
+              value={user.email}
+              onChange={e => editUser(user, "email", e.target.value)}
+              className="border rounded py-1 px-2 w-full"
+            />
+          </td>
+          <td className="text-center"> {/* Center-align */}
+            <select
+              value={user.role}
+              onChange={e => editUser(user, "role", e.target.value)}
+              className="border rounded py-1 px-2 w-full"
+            >
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </select>
+          </td>
+          <td className="text-center"> {/* Center-align */}
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={() => saveEditing(user)}
+            >
+              Save
+            </button>
+          </td>
+        </>
+      ) : (
+        <>
+          <td className="text-center">{user.name}</td>
+          <td className="text-center">{user.email}</td>
+          <td className="text-center">{user.role}</td>
+          <td className="text-center">
+            <div className="flex space-x-2">
+              <button
+                className="text-blue-500 hover:underline"
+                onClick={() => setEditingRow(user.id)}
+              >
+                <BsPencil />
+              </button>
+              <button
+                className="text-red-500 hover:underline"
+                onClick={() => deleteRow(user)}
+              >
+                <BsTrash />
+              </button>
+            </div>
+          </td>
+        </>
+      )}
+    </tr>
+  ))}
+</tbody></table>        </div>
 
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center space-x-4">
